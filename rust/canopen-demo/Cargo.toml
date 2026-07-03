@@ -1,0 +1,15 @@
+[package]
+name = "canopen-demo"
+description = "Demo CLI: run a heartbeat node, send NMT commands, read/write parameters via SDO."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "canopen-demo"
+path = "src/main.rs"
+
+[dependencies]
+canopen-core = { workspace = true }
+canopen-socketcan = { workspace = true }

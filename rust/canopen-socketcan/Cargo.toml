@@ -1,0 +1,12 @@
+[package]
+name = "canopen-socketcan"
+description = "Linux SocketCAN adapter for canopen-core (host-side testing and Linux nodes)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+canopen-core = { workspace = true }
+embedded-can = { workspace = true }
+socketcan = { workspace = true }

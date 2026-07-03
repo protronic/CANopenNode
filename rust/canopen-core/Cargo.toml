@@ -1,0 +1,16 @@
+[package]
+name = "canopen-core"
+description = "Sans-IO CANopen (CiA 301) protocol core, ported from CANopenNode. no_std, no alloc."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+embedded-can = { workspace = true, optional = true }
+
+[features]
+default = ["embedded-can"]
+# Conversions between `canopen_core::CanFrame` and `embedded_can::Frame` implementors
+# (embassy-stm32 frames, socketcan frames, ...).
+embedded-can = ["dep:embedded-can"]

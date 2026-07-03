@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [
+    "canopen-core",
+    "canopen-socketcan",
+    "canopen-demo",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/protronic/CANopenNode"
+
+[workspace.dependencies]
+canopen-core = { path = "canopen-core" }
+canopen-socketcan = { path = "canopen-socketcan" }
+embedded-can = "0.4"
+socketcan = "3"
