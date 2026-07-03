@@ -1,0 +1,15 @@
+[package]
+name = "canopen-od-codegen"
+description = "Generates Rust object dictionary code from CANopenEditor protobuf-JSON device descriptions."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[[bin]]
+name = "canopen-od-codegen"
+path = "src/main.rs"

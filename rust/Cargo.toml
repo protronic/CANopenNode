@@ -2,6 +2,8 @@
 resolver = "2"
 members = [
     "canopen-core",
+    "canopen-od-codegen",
+    "canopen-example-od",
     "canopen-socketcan",
     "canopen-demo",
 ]

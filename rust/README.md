@@ -39,6 +39,8 @@ blocking SocketCAN loop on Linux; unit tests inject a fake clock.
 | Crate | Role |
 |---|---|
 | `canopen-core` | Sans-IO protocol core (`no_std`, no alloc). |
+| `canopen-od-codegen` | Generates the OD from a CANopenEditor protobuf-JSON export. |
+| `canopen-example-od` | OD generated from `example/DS301_profile.json` (reference user). |
 | `canopen-socketcan` | Linux SocketCAN transport (std). |
 | `canopen-demo` | CLI: heartbeat node, NMT master, SDO read/write. |
 
@@ -58,18 +60,41 @@ Ported (with unit tests):
       writes parameters of other nodes from the device itself; this is a
       first-class feature of the port (zencan and friends only offer
       host-side clients)
+- [x] Object dictionary interface (`301/CO_ODinterface.*`) + **OD codegen**
+      from CANopenEditor protobuf-JSON exports (`canopen-od-codegen`,
+      replacing the generated `OD.c`/`OD.h`); verified against the full
+      DS301 profile in `example/DS301_profile.json`
 
 Next, in order:
 
-1. SDO client: segmented transfers (strings, >4 byte objects), then block
-   transfer (`301/CO_SDOclient.*` remainder)
-2. Object dictionary interface + codegen from EDS (`301/CO_ODinterface.*`,
-   replacing CANopenEditor's generated `OD.c`/`OD.h`)
-3. SDO server (`301/CO_SDOserver.*`)
-4. Embassy runner + STM32 example in `protronic/embassy`
+1. SDO server (`301/CO_SDOserver.*`), serving the generated OD
+2. SDO client/server: segmented transfers (strings, >4 byte objects), then
+   block transfer
+3. Embassy runner + STM32 example in `protronic/embassy`
+4. OD extensions (per-entry application callbacks, `OD_extension_init`) for
+   DOMAIN objects and computed values
 5. Emergency producer/consumer (`301/CO_Emergency.*`)
 6. PDO + SYNC (`301/CO_PDO.*`, `301/CO_SYNC.*`)
-7. Heartbeat consumer, NMT master, LSS (`305/`) as needed
+7. Heartbeat consumer, NMT master, LSS (`305/`), storage (0x1010/0x1011)
+
+## Object dictionary workflow
+
+Author the OD in CANopenEditor as usual, then export **both** formats from
+the same project: standard EDS for the ecosystem, protobuf JSON for this
+port. The JSON is consumed at build time:
+
+```rust
+// build.rs
+let json = std::fs::read_to_string("device.json").unwrap();
+let code = canopen_od_codegen::generate(&json).unwrap();
+std::fs::write(format!("{}/od_generated.rs", std::env::var("OUT_DIR").unwrap()), code).unwrap();
+```
+
+The generated `Od` struct has one typed field per entry (direct application
+access, e.g. `od.x1017_producer_heartbeat_time`) and implements
+`canopen_core::od::ObjectDictionary` — `(index, sub)` dispatch with access
+rights, exact-length and limit checks, `$NODEID`-relative COB-IDs resolved
+in `Od::new(node_id)`. `canopen-example-od` shows the pattern.
 
 ## Testing
 

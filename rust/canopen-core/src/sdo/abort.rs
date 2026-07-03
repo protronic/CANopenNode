@@ -43,6 +43,8 @@ impl SdoAbortCode {
     pub const DATA_TRANSF: Self = Self(0x0800_0020);
     /// Data cannot be transferred because of the present device state.
     pub const DATA_DEV_STATE: Self = Self(0x0800_0022);
+    /// No data available.
+    pub const NO_DATA: Self = Self(0x0800_0024);
 
     /// Human-readable description of well-known codes, for diagnostics.
     pub fn description(self) -> &'static str {
@@ -66,6 +68,7 @@ impl SdoAbortCode {
             Self::GENERAL => "general error",
             Self::DATA_TRANSF => "data cannot be transferred or stored",
             Self::DATA_DEV_STATE => "data cannot be transferred (device state)",
+            Self::NO_DATA => "no data available",
             _ => "unknown abort code",
         }
     }

@@ -1,0 +1,13 @@
+[package]
+name = "canopen-example-od"
+description = "Object dictionary generated from example/DS301_profile.json (DS301 communication profile)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+canopen-core = { workspace = true }
+
+[build-dependencies]
+canopen-od-codegen = { path = "../canopen-od-codegen" }
