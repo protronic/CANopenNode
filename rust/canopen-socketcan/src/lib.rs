@@ -35,7 +35,9 @@ impl SocketCanBus {
     /// Returns `Ok(None)` on timeout. Frames CANopen never uses (extended
     /// ids, remote frames, error frames) are skipped silently.
     pub fn recv(&self, timeout: Duration) -> io::Result<Option<CanFrame>> {
-        self.socket.set_read_timeout(timeout)?;
+        // A zero SO_RCVTIMEO means "block forever" on POSIX sockets — a
+        // deadline that has just elapsed must poll, not hang.
+        self.socket.set_read_timeout(timeout.max(Duration::from_micros(1)))?;
         loop {
             match self.socket.read_frame() {
                 Ok(raw) => {
@@ -53,6 +55,8 @@ impl SocketCanBus {
                 {
                     return Ok(None);
                 }
+                // A signal (e.g. terminal resize) is not a bus failure.
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => return Ok(None),
                 Err(e) => return Err(e),
             }
         }
