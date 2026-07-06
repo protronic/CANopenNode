@@ -12,6 +12,11 @@ use std::time::Duration;
 use canopen_core::CanFrame;
 use socketcan::{CanSocket, Socket};
 
+#[cfg(feature = "embassy")]
+mod async_bus;
+#[cfg(feature = "embassy")]
+pub use async_bus::AsyncSocketCanBus;
+
 /// A blocking SocketCAN bus carrying CANopen frames.
 pub struct SocketCanBus {
     socket: CanSocket,

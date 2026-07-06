@@ -8,5 +8,12 @@ repository.workspace = true
 
 [dependencies]
 canopen-core = { workspace = true }
+canopen-embassy = { path = "../canopen-embassy", optional = true }
+embassy-sync = { version = "0.8", optional = true }
 embedded-can = { workspace = true }
 socketcan = { workspace = true }
+
+[features]
+# Async NodeBus adapter for the canopen-embassy runner (Linux hosts and
+# embedded Linux devices).
+embassy = ["dep:canopen-embassy", "dep:embassy-sync"]

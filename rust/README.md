@@ -42,8 +42,14 @@ blocking SocketCAN loop on Linux; unit tests inject a fake clock.
 | `canopen-embassy` | Async runner: drives a `Node` from any `NodeBus` via `embassy-time`. |
 | `canopen-od-codegen` | Generates the OD from a CANopenEditor protobuf-JSON export. |
 | `canopen-example-od` | OD generated from `example/DS301_profile.json` (reference user). |
-| `canopen-socketcan` | Linux SocketCAN transport (std). |
+| `canopen-socketcan` | Linux SocketCAN transport (std); feature `embassy` adds the async `NodeBus` adapter. |
 | `canopen-demo` | CLI: heartbeat node, NMT master, SDO read/write. |
+
+The demo `node` subcommand runs on the **embassy executor's std platform**
+and drives the node through the exact same `canopen_embassy::run` loop as
+the STM32 targets — every vcan test exercises the embedded code path. A
+background thread feeds the socket into an `embassy-sync` channel, the std
+stand-in for the RX interrupt on the MCU.
 
 The Embassy adapter (bxCAN/FDCAN via `embassy-stm32`, `embassy-time`
 runner) lives in the `protronic/embassy` fork and is the next milestone;
@@ -96,8 +102,9 @@ Next, in order:
 2. Emergency producer/consumer (`301/CO_Emergency.*`)
 3. OD extensions (per-entry application callbacks, `OD_extension_init`) for
    DOMAIN objects and computed values
-4. Async `NodeBus` adapter for SocketCAN + master-side frame router (run the
-   SDO client and the node on one bus/socket)
+4. Master-side frame router (run the SDO client, heartbeat consumer and the
+   node concurrently on one bus) — the async SocketCAN `NodeBus` adapter
+   already exists (`canopen-socketcan`, feature `embassy`)
 5. Heartbeat consumer, NMT master, LSS (`305/`), storage (0x1010/0x1011)
 6. SDO block transfer — only needed for large DOMAIN transfers (firmware
    update), low priority

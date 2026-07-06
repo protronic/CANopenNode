@@ -12,5 +12,11 @@ path = "src/main.rs"
 
 [dependencies]
 canopen-core = { workspace = true }
+canopen-embassy = { path = "../canopen-embassy" }
 canopen-example-od = { path = "../canopen-example-od" }
-canopen-socketcan = { workspace = true }
+canopen-socketcan = { workspace = true, features = ["embassy"] }
+# The node subcommand runs on the embassy executor's std platform — the
+# same canopen_embassy::run loop as the STM32 targets.
+embassy-executor = { version = "0.9", features = ["arch-std", "executor-thread"] }
+embassy-time = { version = "0.5", features = ["std"] }
+critical-section = { version = "1.1", features = ["std"] }

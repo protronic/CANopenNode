@@ -22,7 +22,7 @@ use canopen_core::nmt::NmtCommand;
 use canopen_core::sdo::{SdoClient, SdoEvent, SdoTransferError};
 use canopen_core::{CanFrame, Node, NodeId, ResetCommand};
 use canopen_example_od::Od;
-use canopen_socketcan::SocketCanBus;
+use canopen_socketcan::{AsyncSocketCanBus, SocketCanBus};
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -68,47 +68,36 @@ fn parse_node_id(s: &str) -> Result<NodeId, String> {
 }
 
 /// Run a CANopen device with the DS301 example object dictionary: boot-up,
-/// heartbeat, NMT slave, SDO server (parameterize it via `sdo-write`!).
+/// heartbeat, NMT slave, SDO server, PDOs (parameterize it via `sdo-write`!).
+///
+/// Runs on the embassy executor's std platform, driving the node through
+/// the exact same `canopen_embassy::run` loop as the STM32 targets — the
+/// Linux demo exercises the embedded code path.
 fn run_node(iface: &str, id: &str, heartbeat_ms: Option<&str>) -> Result<(), String> {
     let node_id = parse_node_id(id)?;
     let heartbeat_period_ms = match heartbeat_ms {
         Some(s) => u16::try_from(parse_num(s)?).map_err(|_| "heartbeat-ms out of range")?,
         None => 1000,
     };
-    let bus = SocketCanBus::open(iface).map_err(|e| format!("open {iface}: {e}"))?;
-    let started = Instant::now();
-    let now_us = || started.elapsed().as_micros() as u64;
+    let bus = AsyncSocketCanBus::open(iface).map_err(|e| format!("open {iface}: {e}"))?;
+    println!("node {node_id} on {iface}, heartbeat {heartbeat_period_ms} ms, DS301 example OD (embassy std runner)");
 
-    println!("node {node_id} on {iface}, heartbeat {heartbeat_period_ms} ms, DS301 example OD");
+    let executor = Box::leak(Box::new(embassy_executor::Executor::new()));
+    executor.run(move |spawner| {
+        spawner
+            .spawn(node_task(bus, node_id, heartbeat_period_ms))
+            .unwrap();
+    })
+}
+
+#[embassy_executor::task]
+async fn node_task(mut bus: AsyncSocketCanBus, node_id: NodeId, heartbeat_period_ms: u16) {
     let mut od = Od::new(node_id);
     od.x1017_producer_heartbeat_time = heartbeat_period_ms;
     loop {
         let mut node = Node::new(node_id, od.clone());
-        let mut tx = tx_sink(&bus);
-        node.start(now_us(), &mut tx);
-        println!("boot-up sent, state {:?}", node.nmt_state());
-
-        let reset = 'run: loop {
-            let now = now_us();
-            let next = node.process(now, &mut tx);
-            let timeout = next
-                .map(|deadline| Duration::from_micros(deadline.saturating_sub(now)))
-                .unwrap_or(Duration::from_millis(100));
-
-            let received = bus
-                .recv(timeout)
-                .map_err(|e| format!("recv: {e}"))?;
-            if let Some(frame) = received {
-                let state_before = node.nmt_state();
-                if let Some(reset) = node.on_frame(&frame, now_us(), &mut tx) {
-                    break 'run reset;
-                }
-                if node.nmt_state() != state_before {
-                    println!("NMT state: {:?} -> {:?}", state_before, node.nmt_state());
-                }
-            }
-        };
-        match reset {
+        println!("boot-up, entering pre-operational");
+        match canopen_embassy::run(&mut node, &mut bus).await {
             ResetCommand::Communication => {
                 // OD values survive a communication reset (like RAM values
                 // in the C stack), so SDO-written configuration - e.g. PDO
