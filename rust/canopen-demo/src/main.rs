@@ -80,10 +80,10 @@ fn run_node(iface: &str, id: &str, heartbeat_ms: Option<&str>) -> Result<(), Str
     let now_us = || started.elapsed().as_micros() as u64;
 
     println!("node {node_id} on {iface}, heartbeat {heartbeat_period_ms} ms, DS301 example OD");
+    let mut od = Od::new(node_id);
+    od.x1017_producer_heartbeat_time = heartbeat_period_ms;
     loop {
-        let mut od = Od::new(node_id);
-        od.x1017_producer_heartbeat_time = heartbeat_period_ms;
-        let mut node = Node::new(node_id, od);
+        let mut node = Node::new(node_id, od.clone());
         let mut tx = tx_sink(&bus);
         node.start(now_us(), &mut tx);
         println!("boot-up sent, state {:?}", node.nmt_state());
@@ -109,9 +109,20 @@ fn run_node(iface: &str, id: &str, heartbeat_ms: Option<&str>) -> Result<(), Str
             }
         };
         match reset {
-            ResetCommand::Communication => println!("NMT reset communication -> re-initializing"),
-            // A real device would reset the MCU here; the demo re-initializes.
-            ResetCommand::Node => println!("NMT reset node -> re-initializing (demo)"),
+            ResetCommand::Communication => {
+                // OD values survive a communication reset (like RAM values
+                // in the C stack), so SDO-written configuration - e.g. PDO
+                // event timers - takes effect in the new node.
+                println!("NMT reset communication -> re-initializing");
+                od = node.od().clone();
+            }
+            // A real device would reset the MCU here; the demo re-initializes
+            // with factory defaults, like a power cycle without storage.
+            ResetCommand::Node => {
+                println!("NMT reset node -> re-initializing (demo)");
+                od = Od::new(node_id);
+                od.x1017_producer_heartbeat_time = heartbeat_period_ms;
+            }
         }
     }
 }

@@ -160,6 +160,61 @@ cargo run -p canopen-demo -- sdo-write vcan0 10 0x1017 0 250 2 # heartbeat -> 25
 `candump vcan0` alongside shows boot-up (`0x70A`), heartbeats and SDO
 traffic.
 
+## Testing PDOs
+
+The port implements the **bitwise mapping** variant
+(`CO_CONFIG_PDO_BITWISE_MAPPING` in the C stack, and the only variant
+here): mapping entries give the length in *bits*, several objects share
+frame bytes LSB-first, and frames are bit-compatible with a C node compiled
+with that option. The example profile maps by default:
+
+| PDO | COB-ID (node 10) | Payload layout (LSB-first) |
+|---|---|---|
+| TPDO1 | 0x18A | bit 0 = 0x2000:01, bit 1 = 0x2000:02, bits 2–9 = 0x2000:05 |
+| RPDO1 | 0x20A | bit 0 = 0x2010:01, bit 1 = 0x2010:02, bits 2–9 = 0x2010:05 |
+
+PDOs are only active in NMT *operational* state:
+
+```sh
+cargo run -p canopen-demo -- node vcan0 10 &
+candump vcan0 &
+cargo run -p canopen-demo -- nmt vcan0 start 10
+```
+
+**TPDO** — an SDO write to a mapped object triggers the event-driven TPDO
+(the `OD_requestTPDO` mechanism), so no application code is needed:
+
+```sh
+cargo run -p canopen-demo -- sdo-write vcan0 10 0x2000 5 0x42 1
+# candump:  vcan0  18A  [2]  08 01     (0x42 << 2, 10 bits -> 2 bytes)
+cargo run -p canopen-demo -- sdo-write vcan0 10 0x2000 1 1 1
+# candump:  vcan0  18A  [2]  09 01     (bit 0 now set as well)
+```
+
+**RPDO** — inject a frame with can-utils, then read the values back via SDO:
+
+```sh
+cansend vcan0 20A#DD00     # bit0 = 1, bit1 = 0, u8 = 0xDD >> 2 = 0x37
+cargo run -p canopen-demo -- sdo-read vcan0 10 0x2010 1   # -> 1
+cargo run -p canopen-demo -- sdo-read vcan0 10 0x2010 5   # -> 55 (0x37)
+```
+
+**Cyclic TPDO** — set the event timer via SDO and apply it with a
+communication reset. OD values survive the communication reset (like RAM
+values in the C stack; an NMT *node* reset restores factory defaults):
+
+```sh
+cargo run -p canopen-demo -- sdo-write vcan0 10 0x1800 5 1000 2  # event timer 1 s
+cargo run -p canopen-demo -- nmt vcan0 reset-comm 10             # apply PDO config
+cargo run -p canopen-demo -- nmt vcan0 start 10
+# candump: one 18A frame per second
+```
+
+The inhibit time (0x1800:03, 100 µs units) is applied the same way. On the
+STM32 example the identical traffic appears on the physical bus; the
+application there sets values via `node.od_mut()` and calls
+`node.tpdo_request(0)`.
+
 
 ## eds File
 
