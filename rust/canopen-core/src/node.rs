@@ -11,6 +11,7 @@ use crate::cob;
 use crate::heartbeat::HeartbeatProducer;
 use crate::nmt::{NmtResetRequest, NmtSlave, NmtState};
 use crate::od::ObjectDictionary;
+use crate::pdo::{Rpdo, Tpdo, MAX_PDOS};
 use crate::sdo::{SdoServer, SdoServerEvent};
 use crate::{CanFrame, Micros, NodeId, TxSink};
 
@@ -29,29 +30,46 @@ pub enum ResetCommand {
     Node,
 }
 
-/// One local CANopen device: NMT slave, heartbeat producer and SDO server
-/// serving the object dictionary (EMCY, PDO and SYNC will be added as they
-/// are ported).
+/// One local CANopen device: NMT slave, heartbeat producer, SDO server and
+/// PDOs, all serving the object dictionary (EMCY and SYNC will be added as
+/// they are ported).
 #[derive(Debug)]
 pub struct Node<OD: ObjectDictionary> {
     node_id: NodeId,
     nmt: NmtSlave,
     heartbeat: HeartbeatProducer,
     sdo: SdoServer,
+    tpdos: [Option<Tpdo>; MAX_PDOS],
+    rpdos: [Option<Rpdo>; MAX_PDOS],
     od: OD,
 }
 
 impl<OD: ObjectDictionary> Node<OD> {
     /// Create a node in the `Initializing` state. Communication parameters
-    /// (producer heartbeat time, 0x1017) are taken from the OD.
+    /// (producer heartbeat time 0x1017, PDO configuration 0x1400../0x1A00..)
+    /// are taken from the OD; like the C stack, PDO configuration changes
+    /// via SDO take effect after the next communication reset.
     pub fn new(node_id: NodeId, od: OD) -> Self {
         let heartbeat_ms = read_u16(&od, OD_HEARTBEAT_TIME, 0).unwrap_or(0);
+        let tpdos = core::array::from_fn(|slot| Tpdo::from_od(&od, slot));
+        let rpdos = core::array::from_fn(|slot| Rpdo::from_od(&od, slot));
         Self {
             node_id,
             nmt: NmtSlave::new(node_id),
             heartbeat: HeartbeatProducer::new(node_id, heartbeat_ms),
             sdo: SdoServer::new(node_id),
+            tpdos,
+            rpdos,
             od,
+        }
+    }
+
+    /// Request transmission of the given event-driven TPDO at the next
+    /// opportunity (`CO_TPDOsendRequest`). Call after changing mapped OD
+    /// values via [`od_mut`](Self::od_mut). No-op for absent/disabled slots.
+    pub fn tpdo_request(&mut self, slot: usize) {
+        if let Some(Some(tpdo)) = self.tpdos.get_mut(slot) {
+            tpdo.request();
         }
     }
 
@@ -109,13 +127,28 @@ impl<OD: ObjectDictionary> Node<OD> {
                 None => None,
             },
             id if id == self.sdo.request_cob_id() && self.nmt.state().sdo_active() => {
-                let event = self.sdo.on_frame(frame, now, &mut self.od, tx);
-                if let Some(SdoServerEvent::ObjectWritten {
-                    index: OD_HEARTBEAT_TIME,
-                    sub: 0,
-                }) = event
-                {
-                    self.refresh_comm_config();
+                match self.sdo.on_frame(frame, now, &mut self.od, tx) {
+                    Some(SdoServerEvent::ObjectWritten { index, sub }) => {
+                        if (index, sub) == (OD_HEARTBEAT_TIME, 0) {
+                            self.refresh_comm_config();
+                        }
+                        // The OD_requestTPDO mechanism: an SDO write to a
+                        // mapped object triggers the event-driven TPDO.
+                        for tpdo in self.tpdos.iter_mut().flatten() {
+                            if tpdo.maps(index, sub) {
+                                tpdo.request();
+                            }
+                        }
+                    }
+                    None => {}
+                }
+                None
+            }
+            _ if self.nmt.state().pdo_active() => {
+                for rpdo in self.rpdos.iter().flatten() {
+                    if rpdo.on_frame(frame, &mut self.od) {
+                        break;
+                    }
                 }
                 None
             }
@@ -123,16 +156,19 @@ impl<OD: ObjectDictionary> Node<OD> {
         }
     }
 
-    /// Run time-driven work (heartbeat producer, SDO transfer timeouts).
-    /// Returns the next deadline at which `process` wants to run again, if
-    /// any — the `timerNext_us` mechanism of `CO_process()`.
+    /// Run time-driven work (heartbeat producer, SDO transfer timeouts, TPDO
+    /// event/inhibit timers). Returns the next deadline at which `process`
+    /// wants to run again, if any — the `timerNext_us` mechanism of
+    /// `CO_process()`.
     pub fn process(&mut self, now: Micros, tx: &mut impl TxSink) -> Option<Micros> {
-        let hb = self.heartbeat.process(self.nmt.state(), now, tx);
+        let mut next = self.heartbeat.process(self.nmt.state(), now, tx);
         self.sdo.poll(now, tx);
-        match (hb, self.sdo.next_deadline()) {
-            (Some(a), Some(b)) => Some(a.min(b)),
-            (a, b) => a.or(b),
+        next = min_deadline(next, self.sdo.next_deadline());
+        let operational = self.nmt.state().pdo_active();
+        for tpdo in self.tpdos.iter_mut().flatten() {
+            next = min_deadline(next, tpdo.process(&self.od, operational, now, tx));
         }
+        next
     }
 }
 
@@ -142,6 +178,13 @@ fn read_u16(od: &impl ObjectDictionary, index: u16, sub: u8) -> Option<u16> {
     match od.read(index, sub, &mut buf) {
         Ok(2) => Some(u16::from_le_bytes(buf)),
         _ => None,
+    }
+}
+
+fn min_deadline(a: Option<Micros>, b: Option<Micros>) -> Option<Micros> {
+    match (a, b) {
+        (Some(a), Some(b)) => Some(a.min(b)),
+        (a, b) => a.or(b),
     }
 }
 

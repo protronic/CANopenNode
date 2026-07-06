@@ -29,6 +29,7 @@ pub mod heartbeat;
 pub mod nmt;
 pub mod node;
 pub mod od;
+pub mod pdo;
 pub mod sdo;
 
 mod node_id;

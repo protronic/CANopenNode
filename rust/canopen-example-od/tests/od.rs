@@ -52,7 +52,7 @@ fn write_respects_access_rights() {
 fn missing_objects_and_subs() {
     let od = od();
     let mut buf = [0u8; 8];
-    assert_eq!(od.read(0x2000, 0, &mut buf), Err(OdError::ObjectNotFound));
+    assert_eq!(od.read(0x5000, 0, &mut buf), Err(OdError::ObjectNotFound));
     assert_eq!(od.read(0x1000, 1, &mut buf), Err(OdError::SubIndexNotFound));
     assert_eq!(
         od.info(0x1000, 1).unwrap_err().abort_code(),

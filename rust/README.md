@@ -79,11 +79,21 @@ Ported (with unit tests):
       `timerNext_us` hints into `embassy-time` timers; chip-independent via
       the `NodeBus` trait. STM32G4/FDCAN example:
       `examples/stm32g4/src/bin/canopen.rs` in `protronic/embassy`.
+- [x] **PDO** (`301/CO_PDO.*`) with `CO_CONFIG_PDO_BITWISE_MAPPING`
+      semantics (bit-granular mappings, frames bit-compatible with the C
+      stack): configuration from 0x1400../0x1A00.. at node init with full
+      mapping validation (direction, existence, length; erroneous mapping
+      disables the PDO), event-driven TPDOs (types 254/255) with inhibit
+      time, event timer and `tpdo_request()`; SDO writes to mapped objects
+      trigger the TPDO (`OD_requestTPDO` mechanism); RPDOs write received
+      values zero-extended, gated to the operational state. Verified over
+      the profile's default mapping (0x2000 → TPDO1, RPDO1 → 0x2010).
 
 Next, in order:
 
-1. Emergency producer/consumer (`301/CO_Emergency.*`)
-2. PDO + SYNC (`301/CO_PDO.*`, `301/CO_SYNC.*`)
+1. SYNC producer/consumer (`301/CO_SYNC.*`) + synchronous PDO transmission
+   types (0..=240; accepted in config today but inactive)
+2. Emergency producer/consumer (`301/CO_Emergency.*`)
 3. OD extensions (per-entry application callbacks, `OD_extension_init`) for
    DOMAIN objects and computed values
 4. Async `NodeBus` adapter for SocketCAN + master-side frame router (run the

@@ -180,7 +180,7 @@ mod tests {
         use core::task::{Context, Poll, Waker};
         let mut fut = core::pin::pin!(fut);
         let waker = Waker::noop();
-        let mut cx = Context::from_waker(&waker);
+        let mut cx = Context::from_waker(waker);
         loop {
             if let Poll::Ready(out) = fut.as_mut().poll(&mut cx) {
                 return out;
