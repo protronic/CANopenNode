@@ -39,6 +39,7 @@ blocking SocketCAN loop on Linux; unit tests inject a fake clock.
 | Crate | Role |
 |---|---|
 | `canopen-core` | Sans-IO protocol core (`no_std`, no alloc). |
+| `canopen-embassy` | Async runner: drives a `Node` from any `NodeBus` via `embassy-time`. |
 | `canopen-od-codegen` | Generates the OD from a CANopenEditor protobuf-JSON export. |
 | `canopen-example-od` | OD generated from `example/DS301_profile.json` (reference user). |
 | `canopen-socketcan` | Linux SocketCAN transport (std). |
@@ -74,16 +75,22 @@ Ported (with unit tests):
       256-byte buffer (const-generic, no alloc); segmented client ↔
       segmented server roundtrips are cross-checked end-to-end
 
+- [x] **Embassy runner** (`canopen-embassy`): async loop turning the node's
+      `timerNext_us` hints into `embassy-time` timers; chip-independent via
+      the `NodeBus` trait. STM32G4/FDCAN example:
+      `examples/stm32g4/src/bin/canopen.rs` in `protronic/embassy`.
+
 Next, in order:
 
-1. SDO block transfer (`CO_CONFIG_SDO_SRV_BLOCK` equivalent) — only needed
-   for large DOMAIN transfers (firmware update), low priority
-2. Embassy runner + STM32 example in `protronic/embassy`
+1. Emergency producer/consumer (`301/CO_Emergency.*`)
+2. PDO + SYNC (`301/CO_PDO.*`, `301/CO_SYNC.*`)
 3. OD extensions (per-entry application callbacks, `OD_extension_init`) for
    DOMAIN objects and computed values
-4. Emergency producer/consumer (`301/CO_Emergency.*`)
-5. PDO + SYNC (`301/CO_PDO.*`, `301/CO_SYNC.*`)
-6. Heartbeat consumer, NMT master, LSS (`305/`), storage (0x1010/0x1011)
+4. Async `NodeBus` adapter for SocketCAN + master-side frame router (run the
+   SDO client and the node on one bus/socket)
+5. Heartbeat consumer, NMT master, LSS (`305/`), storage (0x1010/0x1011)
+6. SDO block transfer — only needed for large DOMAIN transfers (firmware
+   update), low priority
 
 ## Object dictionary workflow
 

@@ -1,0 +1,19 @@
+[package]
+name = "canopen-embassy"
+description = "Embassy async runner for canopen-core: drives a Node from any async CAN bus using embassy-time."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+canopen-core = { workspace = true }
+embassy-time = "0.5"
+embassy-futures = "0.1"
+heapless = { version = "0.9", default-features = false }
+
+[dev-dependencies]
+# The test harness is the "end binary": it selects the std time driver and a
+# generic timer queue (no embassy-executor involved).
+embassy-time = { version = "0.5", features = ["std", "generic-queue-8"] }
+critical-section = { version = "1.1", features = ["std"] }
