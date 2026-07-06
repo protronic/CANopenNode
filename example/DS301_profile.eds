@@ -5,11 +5,11 @@ FileRevision=1
 LastEDS=
 EDSVersion=4.0
 Description=
-CreationTime=12:00PM
+CreationTime=1:00PM
 CreationDate=11-23-2020
 CreatedBy=
-ModificationTime=2:07AM
-ModificationDate=03-17-2023
+ModificationTime=3:27PM
+ModificationDate=07-06-2026
 ModifiedBy=
 
 [DeviceInfo]
@@ -35,6 +35,7 @@ GroupMessaging=0
 NrOfRXPDO=4
 NrOfTXPDO=4
 LSS_Supported=1
+NG_Slave=0
 
 [DummyUsage]
 Dummy0001=0
@@ -672,7 +673,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0x80000200
+DefaultValue=$NODEID+0x200
 PDOMapping=0
 
 [1400sub2]
@@ -714,7 +715,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0x80000300
+DefaultValue=$NODEID+0x300
 PDOMapping=0
 
 [1401sub2]
@@ -831,7 +832,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1600sub1]
@@ -840,7 +841,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20100101
 PDOMapping=0
 
 [1600sub2]
@@ -849,7 +850,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20100201
 PDOMapping=0
 
 [1600sub3]
@@ -858,7 +859,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20100508
 PDOMapping=0
 
 [1600sub4]
@@ -918,7 +919,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1601sub1]
@@ -927,7 +928,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20100610
 PDOMapping=0
 
 [1601sub2]
@@ -936,7 +937,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20100301
 PDOMapping=0
 
 [1601sub3]
@@ -945,7 +946,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20100401
 PDOMapping=0
 
 [1601sub4]
@@ -1188,7 +1189,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0xC0000180
+DefaultValue=$NODEID+0x40000180
 PDOMapping=0
 
 [1800sub2]
@@ -1248,7 +1249,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0xC0000280
+DefaultValue=$NODEID+0x40000280
 PDOMapping=0
 
 [1801sub2]
@@ -1419,7 +1420,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1A00sub1]
@@ -1428,7 +1429,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20000101
 PDOMapping=0
 
 [1A00sub2]
@@ -1437,7 +1438,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20000201
 PDOMapping=0
 
 [1A00sub3]
@@ -1446,7 +1447,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20000508
 PDOMapping=0
 
 [1A00sub4]
@@ -1506,7 +1507,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1A01sub1]
@@ -1515,7 +1516,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20000610
 PDOMapping=0
 
 [1A01sub2]
@@ -1524,7 +1525,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20000301
 PDOMapping=0
 
 [1A01sub3]
@@ -1533,7 +1534,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x20000401
 PDOMapping=0
 
 [1A01sub4]
@@ -1756,5 +1757,145 @@ DefaultValue=0x00000000
 PDOMapping=0
 
 [ManufacturerObjects]
-SupportedObjects=0
+SupportedObjects=2
+1=0x2000
+2=0x2010
+
+[2000]
+ParameterName=Object 1
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x7
+
+[2000sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+PDOMapping=0
+
+[2000sub1]
+ParameterName=Sub Object 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rwr
+DefaultValue=0
+PDOMapping=1
+
+[2000sub2]
+ParameterName=Sub Object 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rwr
+DefaultValue=0
+PDOMapping=1
+
+[2000sub3]
+ParameterName=Sub Object 3
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rwr
+DefaultValue=0
+PDOMapping=1
+
+[2000sub4]
+ParameterName=Sub Object 4
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rwr
+DefaultValue=0
+PDOMapping=1
+
+[2000sub5]
+ParameterName=Sub Object 5
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rwr
+DefaultValue=0
+PDOMapping=1
+
+[2000sub6]
+ParameterName=Sub Object 6
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rwr
+DefaultValue=0
+PDOMapping=1
+
+[2010]
+ParameterName=Object 2
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x7
+
+[2010sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+PDOMapping=0
+
+[2010sub1]
+ParameterName=Sub Object 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[2010sub2]
+ParameterName=Sub Object 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[2010sub3]
+ParameterName=Sub Object 3
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[2010sub4]
+ParameterName=Sub Object 4
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0001
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[2010sub5]
+ParameterName=Sub Object 5
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[2010sub6]
+ParameterName=Sub Object 6
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
 

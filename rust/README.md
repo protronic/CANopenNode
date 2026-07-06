@@ -149,3 +149,60 @@ cargo run -p canopen-demo -- sdo-write vcan0 10 0x1017 0 250 2 # heartbeat -> 25
 
 `candump vcan0` alongside shows boot-up (`0x70A`), heartbeats and SDO
 traffic.
+
+
+## eds File
+
+### TPDO communication parameter
+
+* COB-ID used by TPDO:
+  * bit 31: If set, PDO does not exist / is not valid
+  * bit 30: If set, NO RTR is allowed on this PDO
+  * bit 11-29: set to 0
+  * bit 0-10: 11-bit CAN-ID
+* Transmission type:
+  * Value 0: synchronous (acyclic)
+  * Value 1-240: synchronous (cyclic every (1-240)-th sync)
+  * Value 241-253: not used
+  * Value 254: event-driven (manufacturer-specific)
+  * Value 255: event-driven (device profile and application profile specific)
+* Inhibit time in multiple of 100µs, if the transmission type is set to 254 or 255 (0 = disabled).
+* Event timer interval in ms, if the transmission type is set to 254 or 255 (0 = disabled).
+* SYNC start value
+  * Value 0: Counter of the SYNC message shall not be processed.
+  * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.
+
+### TPDO mapping parameter
+
+* Number of mapped application objects in PDO:
+  * Value 0: mapping is disabled.
+  * Value 1: sub-index 0x01 is valid.
+  * Value 2-8: sub-indexes 0x01 to (0x02 to 0x08) are valid.
+* Application object 1-8:
+  * bit 16-31: index
+  * bit 8-15: sub-index
+  * bit 0-7: data length in bits
+
+### RPDO communication parameter
+
+* COB-ID used by RPDO:
+  * bit 31: If set, PDO does not exist / is not valid
+  * bit 11-30: set to 0
+  * bit 0-10: 11-bit CAN-ID
+* Transmission type:
+  * Value 0-240: synchronous, processed after next reception of SYNC object
+  * Value 241-253: not used
+  * Value 254: event-driven (manufacturer-specific)
+  * Value 255: event-driven (device profile and application profile specific)
+* Event timer in ms (0 = disabled) for deadline monitoring.
+
+### RPDO mapping parameter
+
+* Number of mapped application objects in PDO:
+  * Value 0: mapping is disabled.
+  * Value 1: sub-index 0x01 is valid.
+  * Value 2-8: sub-indexes 0x01 to (0x02 to 0x08) are valid.
+* Application object 1-8:
+  * bit 16-31: index
+  * bit 8-15: sub-index
+  * bit 0-7: data length in bits
