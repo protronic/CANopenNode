@@ -12,6 +12,8 @@
 
 mod abort;
 mod client;
+mod server;
 
 pub use abort::SdoAbortCode;
 pub use client::{SdoClient, SdoClientError, SdoEvent, SdoTransferError, DEFAULT_SDO_TIMEOUT_US};
+pub use server::{SdoServer, SdoServerEvent};

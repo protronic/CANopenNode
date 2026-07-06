@@ -34,7 +34,7 @@ pub mod sdo;
 mod node_id;
 
 pub use frame::CanFrame;
-pub use node::{Node, NodeConfig, ResetCommand};
+pub use node::{Node, ResetCommand};
 pub use node_id::NodeId;
 
 /// Monotonic timestamp in microseconds from an arbitrary epoch.

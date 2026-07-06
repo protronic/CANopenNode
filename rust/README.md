@@ -64,18 +64,21 @@ Ported (with unit tests):
       from CANopenEditor protobuf-JSON exports (`canopen-od-codegen`,
       replacing the generated `OD.c`/`OD.h`); verified against the full
       DS301 profile in `example/DS301_profile.json`
+- [x] SDO server, expedited transfers (`301/CO_SDOserver.*`), integrated in
+      `Node`: serves the generated OD with access/limit checks, respects NMT
+      state, applies 0x1017 writes to the heartbeat producer immediately;
+      end-to-end tested client ↔ server over the DS301 OD
 
 Next, in order:
 
-1. SDO server (`301/CO_SDOserver.*`), serving the generated OD
-2. SDO client/server: segmented transfers (strings, >4 byte objects), then
+1. SDO client/server: segmented transfers (strings, >4 byte objects), then
    block transfer
-3. Embassy runner + STM32 example in `protronic/embassy`
-4. OD extensions (per-entry application callbacks, `OD_extension_init`) for
+2. Embassy runner + STM32 example in `protronic/embassy`
+3. OD extensions (per-entry application callbacks, `OD_extension_init`) for
    DOMAIN objects and computed values
-5. Emergency producer/consumer (`301/CO_Emergency.*`)
-6. PDO + SYNC (`301/CO_PDO.*`, `301/CO_SYNC.*`)
-7. Heartbeat consumer, NMT master, LSS (`305/`), storage (0x1010/0x1011)
+4. Emergency producer/consumer (`301/CO_Emergency.*`)
+5. PDO + SYNC (`301/CO_PDO.*`, `301/CO_SYNC.*`)
+6. Heartbeat consumer, NMT master, LSS (`305/`), storage (0x1010/0x1011)
 
 ## Object dictionary workflow
 
@@ -120,6 +123,17 @@ cargo run -p canopen-demo -- sdo-write vcan0 4 0x1017 0 500 2 # set to 500 ms
 cargo run -p canopen-demo -- nmt vcan0 start 4                # NMT master command
 cargo run -p canopen-demo -- node vcan0 10 1000               # run own node
 ```
+
+The demo node serves the DS301 example OD via SDO, so two shells and a vcan
+are a complete self-test without the C reference:
+
+```sh
+cargo run -p canopen-demo -- node vcan0 10 &                  # device
+cargo run -p canopen-demo -- sdo-read  vcan0 10 0x1200 2      # -> 0x58A ($NODEID+0x580)
+cargo run -p canopen-demo -- sdo-write vcan0 10 0x1017 0 250 2 # heartbeat -> 250 ms
+```
+
+`candump vcan0` shows the heartbeat rate change immediately after the write.
 
 `candump vcan0` alongside shows boot-up (`0x70A`), heartbeats and SDO
 traffic.

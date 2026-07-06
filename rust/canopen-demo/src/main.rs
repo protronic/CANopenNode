@@ -20,7 +20,8 @@ use std::time::{Duration, Instant};
 
 use canopen_core::nmt::NmtCommand;
 use canopen_core::sdo::{SdoClient, SdoEvent, SdoTransferError};
-use canopen_core::{CanFrame, Node, NodeConfig, NodeId, ResetCommand};
+use canopen_core::{CanFrame, Node, NodeId, ResetCommand};
+use canopen_example_od::Od;
 use canopen_socketcan::SocketCanBus;
 
 fn main() -> ExitCode {
@@ -66,7 +67,8 @@ fn parse_node_id(s: &str) -> Result<NodeId, String> {
         .ok_or_else(|| format!("node id must be 1..=127, got {s}"))
 }
 
-/// Run a minimal CANopen device: boot-up, heartbeat, NMT slave.
+/// Run a CANopen device with the DS301 example object dictionary: boot-up,
+/// heartbeat, NMT slave, SDO server (parameterize it via `sdo-write`!).
 fn run_node(iface: &str, id: &str, heartbeat_ms: Option<&str>) -> Result<(), String> {
     let node_id = parse_node_id(id)?;
     let heartbeat_period_ms = match heartbeat_ms {
@@ -77,9 +79,11 @@ fn run_node(iface: &str, id: &str, heartbeat_ms: Option<&str>) -> Result<(), Str
     let started = Instant::now();
     let now_us = || started.elapsed().as_micros() as u64;
 
-    println!("node {node_id} on {iface}, heartbeat {heartbeat_period_ms} ms");
+    println!("node {node_id} on {iface}, heartbeat {heartbeat_period_ms} ms, DS301 example OD");
     loop {
-        let mut node = Node::new(node_id, NodeConfig { heartbeat_period_ms });
+        let mut od = Od::new(node_id);
+        od.x1017_producer_heartbeat_time = heartbeat_period_ms;
+        let mut node = Node::new(node_id, od);
         let mut tx = tx_sink(&bus);
         node.start(now_us(), &mut tx);
         println!("boot-up sent, state {:?}", node.nmt_state());
