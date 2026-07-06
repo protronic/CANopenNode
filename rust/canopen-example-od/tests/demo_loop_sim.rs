@@ -96,13 +96,15 @@ fn cyclic_tpdo_and_heartbeat_survive_five_seconds() {
     let heartbeats: Vec<u64> = bus.sent.iter().filter(|(_, f)| f.id() == 0x70A).map(|(t, _)| *t).collect();
 
     assert_eq!(bus.zero_timeouts, 0, "zero recv timeout blocks the real socket forever");
-    // Event timer 1000 ms, operational from t=100ms: PDOs at ~1.1s, 2.1s, 3.1s, 4.1s.
+    // Operational from t=100ms: initial TPDO right away (C parity), then
+    // the 1000 ms event timer -> ~0.1s, 1.1s, 2.1s, 3.1s, 4.1s.
     assert!(
-        pdos.len() >= 4,
-        "expected cyclic TPDOs, got {} at {:?}",
+        pdos.len() >= 5,
+        "expected initial + cyclic TPDOs, got {} at {:?}",
         pdos.len(),
         pdos
     );
+    assert!(pdos[0] < 200_000, "initial TPDO must follow NMT start, first at {}", pdos[0]);
     // Boot-up + heartbeat every second, the whole time.
     assert!(
         heartbeats.len() >= 5,
@@ -118,11 +120,14 @@ fn cyclic_tpdo_and_heartbeat_survive_five_seconds() {
 }
 
 #[test]
-fn without_event_timer_no_pdo_but_alive() {
+fn without_event_timer_initial_pdo_only_but_alive() {
     let bus = simulate(0, 3_000_000);
     assert_eq!(bus.zero_timeouts, 0);
-    let pdos = bus.sent.iter().filter(|(_, f)| f.id() == 0x18A).count();
-    assert_eq!(pdos, 0, "no event timer, no request -> no TPDO");
+    // Entering operational transmits every valid TPDO once (C parity);
+    // without an event timer or application request nothing follows.
+    let tpdo1 = bus.sent.iter().filter(|(_, f)| f.id() == 0x18A).count();
+    let tpdo2 = bus.sent.iter().filter(|(_, f)| f.id() == 0x28A).count();
+    assert_eq!((tpdo1, tpdo2), (1, 1), "exactly the initial transmissions");
     let heartbeats = bus.sent.iter().filter(|(_, f)| f.id() == 0x70A).count();
     assert!(heartbeats >= 3);
 }

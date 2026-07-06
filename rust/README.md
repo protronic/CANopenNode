@@ -180,12 +180,16 @@ with that option. The example profile maps by default:
 | TPDO1 | 0x18A | bit 0 = 0x2000:01, bit 1 = 0x2000:02, bits 2–9 = 0x2000:05 |
 | RPDO1 | 0x20A | bit 0 = 0x2010:01, bit 1 = 0x2010:02, bits 2–9 = 0x2010:05 |
 
-PDOs are only active in NMT *operational* state:
+PDOs are only active in NMT *operational* state. On entering operational,
+every valid event-driven TPDO transmits its current value once (like the C
+stack), so an NMT start is immediately visible on the bus:
 
 ```sh
 cargo run -p canopen-demo -- node vcan0 10 &
 candump vcan0 &
 cargo run -p canopen-demo -- nmt vcan0 start 10
+# candump:  vcan0  18A  [2]  00 00     (TPDO1 initial value)
+#           vcan0  28A  [3]  00 00 00  (TPDO2 initial value)
 ```
 
 **TPDO** — an SDO write to a mapped object triggers the event-driven TPDO

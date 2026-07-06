@@ -15,6 +15,11 @@
 //! Supported transmission types: 254/255 (event-driven, with inhibit and
 //! event timer). Synchronous types (0..=240) are accepted in the
 //! configuration but do not fire until the SYNC object is ported.
+//!
+//! Like the C stack, the send request of an event-driven TPDO is held armed
+//! while the node is not operational ("reset triggers" in
+//! `CO_TPDO_process`), so every valid TPDO transmits once immediately upon
+//! entering the operational state.
 
 use crate::od::{ObjectDictionary, PdoAccess};
 use crate::{CanFrame, Micros, TxSink};
@@ -152,7 +157,9 @@ impl Tpdo {
             inhibit_us,
             event_us,
             mapping,
-            send_request: false,
+            // Armed like `CO_TPDO_init`: first process() in operational
+            // transmits the initial PDO value.
+            send_request: true,
             inhibit_until: 0,
             event_deadline: None,
         })
@@ -187,8 +194,12 @@ impl Tpdo {
             return None;
         }
         if !operational {
-            self.send_request = false;
+            // "Reset triggers" like the C stack: keep the send request
+            // armed and clear the timers, so the TPDO transmits once
+            // immediately on (re-)entering operational.
+            self.send_request = true;
             self.event_deadline = None;
+            self.inhibit_until = 0;
             return None;
         }
         // (Re)arm the event timer when entering operational.
@@ -454,13 +465,38 @@ mod tests {
         assert_eq!(tpdo.process(&od, false, 0, &mut |f| sent.push(f)), None);
         assert!(sent.is_empty());
 
-        // Operational: timer armed, fires at 50 ms.
+        // Operational: initial transmission right away (C parity), then
+        // the event timer fires every 50 ms.
         let next = tpdo.process(&od, true, 0, &mut |f| sent.push(f));
         assert_eq!(next, Some(50_000));
-        assert!(sent.is_empty());
-        tpdo.process(&od, true, 50_000, &mut |f| sent.push(f));
         assert_eq!(sent.len(), 1);
+        tpdo.process(&od, true, 50_000, &mut |f| sent.push(f));
+        assert_eq!(sent.len(), 2);
         tpdo.process(&od, true, 100_000, &mut |f| sent.push(f));
+        assert_eq!(sent.len(), 3);
+    }
+
+    #[test]
+    fn entering_operational_sends_once_even_without_event_timer() {
+        let mut od = PdoOd::default();
+        od.t_u8 = 0x11;
+        let mut tpdo = Tpdo::from_od(&od, 0).unwrap();
+        let mut sent = Vec::new();
+
+        // Pre-operational process() must not send but keeps the request armed.
+        assert_eq!(tpdo.process(&od, false, 0, &mut |f| sent.push(f)), None);
+        assert!(sent.is_empty());
+
+        // NMT start: the initial PDO value goes out once, then silence
+        // until the next application request.
+        tpdo.process(&od, true, 1_000, &mut |f| sent.push(f));
+        assert_eq!(sent.len(), 1);
+        tpdo.process(&od, true, 2_000_000, &mut |f| sent.push(f));
+        assert_eq!(sent.len(), 1, "no event timer, no request -> no repeat");
+
+        // Stop and restart: transmits once again on re-entering operational.
+        tpdo.process(&od, false, 3_000_000, &mut |f| sent.push(f));
+        tpdo.process(&od, true, 4_000_000, &mut |f| sent.push(f));
         assert_eq!(sent.len(), 2);
     }
 
