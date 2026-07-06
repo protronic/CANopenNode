@@ -166,6 +166,12 @@ pub struct OdString<const N: usize> {
     bytes: [u8; N],
 }
 
+impl<const N: usize> Default for OdString<N> {
+    fn default() -> Self {
+        Self::new(&[])
+    }
+}
+
 impl<const N: usize> OdString<N> {
     /// Create from initial content; `init` longer than `N` is truncated
     /// (the code generator sizes `N` to fit the configured default).

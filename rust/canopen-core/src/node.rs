@@ -99,7 +99,7 @@ impl<OD: ObjectDictionary> Node<OD> {
     pub fn on_frame(
         &mut self,
         frame: &CanFrame,
-        _now: Micros,
+        now: Micros,
         tx: &mut impl TxSink,
     ) -> Option<ResetCommand> {
         match frame.id() {
@@ -109,7 +109,7 @@ impl<OD: ObjectDictionary> Node<OD> {
                 None => None,
             },
             id if id == self.sdo.request_cob_id() && self.nmt.state().sdo_active() => {
-                let event = self.sdo.on_frame(frame, &mut self.od, tx);
+                let event = self.sdo.on_frame(frame, now, &mut self.od, tx);
                 if let Some(SdoServerEvent::ObjectWritten {
                     index: OD_HEARTBEAT_TIME,
                     sub: 0,
@@ -123,11 +123,16 @@ impl<OD: ObjectDictionary> Node<OD> {
         }
     }
 
-    /// Run time-driven work (currently the heartbeat producer). Returns the
-    /// next deadline at which `process` wants to run again, if any — the
-    /// `timerNext_us` mechanism of `CO_process()`.
+    /// Run time-driven work (heartbeat producer, SDO transfer timeouts).
+    /// Returns the next deadline at which `process` wants to run again, if
+    /// any — the `timerNext_us` mechanism of `CO_process()`.
     pub fn process(&mut self, now: Micros, tx: &mut impl TxSink) -> Option<Micros> {
-        self.heartbeat.process(self.nmt.state(), now, tx)
+        let hb = self.heartbeat.process(self.nmt.state(), now, tx);
+        self.sdo.poll(now, tx);
+        match (hb, self.sdo.next_deadline()) {
+            (Some(a), Some(b)) => Some(a.min(b)),
+            (a, b) => a.or(b),
+        }
     }
 }
 

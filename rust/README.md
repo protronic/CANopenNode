@@ -64,15 +64,20 @@ Ported (with unit tests):
       from CANopenEditor protobuf-JSON exports (`canopen-od-codegen`,
       replacing the generated `OD.c`/`OD.h`); verified against the full
       DS301 profile in `example/DS301_profile.json`
-- [x] SDO server, expedited transfers (`301/CO_SDOserver.*`), integrated in
-      `Node`: serves the generated OD with access/limit checks, respects NMT
-      state, applies 0x1017 writes to the heartbeat producer immediately;
-      end-to-end tested client ↔ server over the DS301 OD
+- [x] SDO server (`301/CO_SDOserver.*`), integrated in `Node`: serves the
+      generated OD with access/limit checks, respects NMT state, applies
+      0x1017 writes to the heartbeat producer immediately; end-to-end tested
+      client ↔ server over the DS301 OD
+- [x] **Segmented SDO transfers** in client and server (strings and other
+      objects >4 bytes) with toggle-bit checking, size verification and
+      per-response timeouts (server aborts stale transfers); staged in a
+      256-byte buffer (const-generic, no alloc); segmented client ↔
+      segmented server roundtrips are cross-checked end-to-end
 
 Next, in order:
 
-1. SDO client/server: segmented transfers (strings, >4 byte objects), then
-   block transfer
+1. SDO block transfer (`CO_CONFIG_SDO_SRV_BLOCK` equivalent) — only needed
+   for large DOMAIN transfers (firmware update), low priority
 2. Embassy runner + STM32 example in `protronic/embassy`
 3. OD extensions (per-entry application callbacks, `OD_extension_init`) for
    DOMAIN objects and computed values

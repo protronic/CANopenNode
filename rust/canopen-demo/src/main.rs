@@ -4,7 +4,7 @@
 //! canopen-demo node      <iface> <node-id> [heartbeat-ms]
 //! canopen-demo nmt       <iface> <start|stop|preop|reset-node|reset-comm> <node-id|0>
 //! canopen-demo sdo-read  <iface> <server-id> <index> <sub>
-//! canopen-demo sdo-write <iface> <server-id> <index> <sub> <value> <1|2|4>
+//! canopen-demo sdo-write <iface> <server-id> <index> <sub> <value> <1|2|4|str>
 //! ```
 //!
 //! Numbers accept decimal or `0x`-prefixed hex. Typical parameterization
@@ -49,7 +49,7 @@ const USAGE: &str = "usage:
   canopen-demo node      <iface> <node-id> [heartbeat-ms]
   canopen-demo nmt       <iface> <start|stop|preop|reset-node|reset-comm> <node-id|0>
   canopen-demo sdo-read  <iface> <server-id> <index> <sub>
-  canopen-demo sdo-write <iface> <server-id> <index> <sub> <value> <1|2|4>";
+  canopen-demo sdo-write <iface> <server-id> <index> <sub> <value> <1|2|4|str>";
 
 fn parse_num(s: &str) -> Result<u64, String> {
     let parsed = match s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
@@ -137,13 +137,14 @@ fn send_nmt(iface: &str, cmd: &str, id: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Run one SDO transfer to completion over the bus.
+/// Run one SDO transfer to completion over the bus. Returns the uploaded
+/// bytes for reads, `None` for successful writes.
 fn run_sdo_transfer(
     bus: &SocketCanBus,
     client: &mut SdoClient,
     request: CanFrame,
     now_us: &dyn Fn() -> u64,
-) -> Result<SdoEvent, String> {
+) -> Result<Option<Vec<u8>>, String> {
     bus.send(&request).map_err(|e| format!("send: {e}"))?;
     loop {
         let now = now_us();
@@ -153,12 +154,15 @@ fn run_sdo_transfer(
         let received = bus.recv(timeout).map_err(|e| format!("recv: {e}"))?;
         let mut tx = tx_sink(bus);
         if let Some(frame) = received {
-            if let Some(event) = client.on_frame(&frame, &mut tx) {
-                return Ok(event);
+            match client.on_frame(&frame, now_us(), &mut tx) {
+                Some(SdoEvent::UploadOk { data, .. }) => return Ok(Some(data.to_vec())),
+                Some(SdoEvent::DownloadOk { .. }) => return Ok(None),
+                Some(event @ SdoEvent::Failed { .. }) => return Err(describe_failure(&event)),
+                None => {}
             }
         }
-        if let Some(event) = client.poll(now_us(), &mut tx) {
-            return Ok(event);
+        if let Some(event @ SdoEvent::Failed { .. }) = client.poll(now_us(), &mut tx) {
+            return Err(describe_failure(&event));
         }
     }
 }
@@ -174,21 +178,27 @@ fn sdo_read(iface: &str, server: &str, index: &str, sub: &str) -> Result<(), Str
 
     let mut client = SdoClient::new(server);
     let request = client.upload(index, sub, now_us()).expect("client is idle");
-    match run_sdo_transfer(&bus, &mut client, request, &now_us)? {
-        SdoEvent::UploadOk { len, data, .. } => {
-            let bytes = &data[..len as usize];
-            let mut le = [0u8; 4];
-            le[..bytes.len()].copy_from_slice(bytes);
-            println!(
-                "{index:#06X}:{sub:#04X} = {} ({} byte{}, raw {bytes:02X?})",
-                u32::from_le_bytes(le),
-                len,
-                if len == 1 { "" } else { "s" },
-            );
-            Ok(())
-        }
-        event => Err(describe_failure(&event)),
+    let bytes = run_sdo_transfer(&bus, &mut client, request, &now_us)?
+        .expect("upload returns data");
+    if bytes.len() <= 4 {
+        let mut le = [0u8; 4];
+        le[..bytes.len()].copy_from_slice(&bytes);
+        println!(
+            "{index:#06X}:{sub:#04X} = {} ({} byte{}, raw {bytes:02X?})",
+            u32::from_le_bytes(le),
+            bytes.len(),
+            if bytes.len() == 1 { "" } else { "s" },
+        );
+    } else if bytes.iter().all(|b| (0x20..0x7F).contains(b)) {
+        println!(
+            "{index:#06X}:{sub:#04X} = \"{}\" ({} bytes)",
+            String::from_utf8_lossy(&bytes),
+            bytes.len(),
+        );
+    } else {
+        println!("{index:#06X}:{sub:#04X} = {bytes:02X?} ({} bytes)", bytes.len());
     }
+    Ok(())
 }
 
 fn sdo_write(
@@ -202,31 +212,30 @@ fn sdo_write(
     let server = parse_node_id(server)?;
     let index = u16::try_from(parse_num(index)?).map_err(|_| "index out of range")?;
     let sub = u8::try_from(parse_num(sub)?).map_err(|_| "sub-index out of range")?;
-    let value = parse_num(value)?;
-    let size: usize = match size {
-        "1" | "2" | "4" => size.parse().unwrap(),
-        _ => return Err("size must be 1, 2 or 4 (bytes)".into()),
+    let data: Vec<u8> = match size {
+        "str" => value.as_bytes().to_vec(),
+        "1" | "2" | "4" => {
+            let size: usize = size.parse().unwrap();
+            let value = parse_num(value)?;
+            if size < 8 && value >= 1u64 << (size * 8) {
+                return Err(format!("value {value} does not fit into {size} byte(s)"));
+            }
+            value.to_le_bytes()[..size].to_vec()
+        }
+        _ => return Err("size must be 1, 2, 4 (bytes) or 'str'".into()),
     };
-    if size < 8 && value >= 1u64 << (size * 8) {
-        return Err(format!("value {value} does not fit into {size} byte(s)"));
-    }
 
     let bus = SocketCanBus::open(iface).map_err(|e| format!("open {iface}: {e}"))?;
     let started = Instant::now();
     let now_us = move || started.elapsed().as_micros() as u64;
 
     let mut client = SdoClient::new(server);
-    let data = value.to_le_bytes();
     let request = client
-        .download(index, sub, &data[..size], now_us())
-        .expect("client is idle");
-    match run_sdo_transfer(&bus, &mut client, request, &now_us)? {
-        SdoEvent::DownloadOk { .. } => {
-            println!("{index:#06X}:{sub:#04X} <- {value} written");
-            Ok(())
-        }
-        event => Err(describe_failure(&event)),
-    }
+        .download(index, sub, &data, now_us())
+        .map_err(|e| format!("cannot start download: {e:?}"))?;
+    run_sdo_transfer(&bus, &mut client, request, &now_us)?;
+    println!("{index:#06X}:{sub:#04X} <- {value} written ({} bytes)", data.len());
+    Ok(())
 }
 
 fn describe_failure(event: &SdoEvent) -> String {
@@ -238,10 +247,9 @@ fn describe_failure(event: &SdoEvent) -> String {
             SdoTransferError::Timeout => {
                 format!("SDO timeout for {index:#06X}:{sub:#04X} (no response from server)")
             }
-            SdoTransferError::SegmentedUnsupported { size } => format!(
-                "server answered with a segmented transfer ({} bytes) — not supported yet",
-                size.map_or_else(|| "unknown".to_string(), |s| s.to_string())
-            ),
+            SdoTransferError::BufferTooSmall => {
+                format!("value of {index:#06X}:{sub:#04X} exceeds the client buffer")
+            }
             SdoTransferError::Protocol => "SDO protocol error (malformed response)".to_string(),
         },
         other => format!("unexpected SDO event: {other:?}"),
