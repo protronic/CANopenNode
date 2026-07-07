@@ -226,6 +226,56 @@ STM32 example the identical traffic appears on the physical bus; the
 application there sets values via `node.od_mut()` and calls
 `node.tpdo_request(0)`.
 
+## Hardware test: STM32H573I-DK + USB SocketCAN adapter
+
+Board example: `examples/stm32h573i-dk/src/bin/canopen.rs` in
+`protronic/embassy`. The discovery kit exposes **FDCAN2** on the Arduino
+connector — attach the CAN transceiver shield there:
+
+| Signal | MCU pin | Arduino pin |
+|---|---|---|
+| FDCAN2 RX | PB5 | D3 |
+| FDCAN2 TX | PB6 | D15 |
+
+Wire CAN-H/CAN-L between the shield and the USB adapter; with only two
+bus nodes make sure at least one 120 Ω termination is active (many shields
+and USB adapters have a solder bridge or jumper for it). The example runs
+classic CAN at **500 kbit/s**, node id 10.
+
+Flash and stream defmt logs (needs `cargo install probe-rs-tools` and the
+on-board ST-LINK):
+
+```sh
+cd examples/stm32h573i-dk
+cargo run --release --bin canopen
+```
+
+Bring up the USB adapter on the Linux side:
+
+```sh
+# Native SocketCAN adapters (gs_usb/candleLight, PEAK, Kvaser, ...):
+sudo ip link set can0 up type can bitrate 500000
+
+# SLCAN adapters (CANable with slcan firmware, USBtin, ...):
+sudo slcand -o -c -s6 /dev/ttyACM0 can0   # -s6 = 500 kbit/s
+sudo ip link set can0 up
+```
+
+Then run the same tests as on vcan, just against `can0`. On reset the
+board's boot-up frame (`70A [1] 00`) appears in `candump can0`, and:
+
+```sh
+cargo run -p canopen-demo -- sdo-read  can0 10 0x1200 2       # -> 0x58A
+cargo run -p canopen-demo -- sdo-write can0 10 0x1017 0 250 2 # heartbeat 250 ms
+cargo run -p canopen-demo -- nmt can0 start 10                # PDOs active
+cargo run -p canopen-demo -- sdo-write can0 10 0x2000 5 0x42 1 # TPDO1 on 0x18A
+cansend can0 20A#DD00                                          # RPDO1
+cargo run -p canopen-demo -- sdo-read  can0 10 0x2010 5       # -> 55 (0x37)
+```
+
+If nothing appears on the bus, check termination first, then bitrate
+(`ip -details link show can0` must say 500000).
+
 
 ## eds File
 
