@@ -83,8 +83,8 @@ Ported (with unit tests):
 
 - [x] **Embassy runner** (`canopen-embassy`): async loop turning the node's
       `timerNext_us` hints into `embassy-time` timers; chip-independent via
-      the `NodeBus` trait. STM32G4/FDCAN example:
-      `examples/stm32g4/src/bin/canopen.rs` in `protronic/embassy`.
+      the `NodeBus` trait. STM32 embedded examples: G4 and H573I-DK in
+      `protronic/embassy`; NUCLEO-G0B1RE in `examples/stm32g0b1-nucleo/`.
 - [x] **PDO** (`301/CO_PDO.*`) with `CO_CONFIG_PDO_BITWISE_MAPPING`
       semantics (bit-granular mappings, frames bit-compatible with the C
       stack): configuration from 0x1400../0x1A00.. at node init with full
@@ -275,6 +275,33 @@ cargo run -p canopen-demo -- sdo-read  can0 10 0x2010 5       # -> 55 (0x37)
 
 If nothing appears on the bus, check termination first, then bitrate
 (`ip -details link show can0` must say 500000).
+
+
+## Hardware test: NUCLEO-G0B1RE + USB SocketCAN adapter
+
+Board example: `examples/stm32g0b1-nucleo/src/bin/canopen.rs` in this
+repository. The Nucleo exposes **FDCAN1** on the morpho connector — attach a
+CAN transceiver breakout there:
+
+| Signal | MCU pin | Morpho CN7 |
+|---|---|---|
+| FDCAN1 RX | PA11 | pin 7 |
+| FDCAN1 TX | PA12 | pin 2 |
+
+Wire CAN-H/CAN-L between the breakout and the USB adapter; with only two
+bus nodes make sure at least one 120 Ω termination is active. The example
+runs classic CAN at **500 kbit/s**, node id 10.
+
+Flash and stream defmt logs (needs `cargo install probe-rs-tools` and the
+on-board ST-LINK):
+
+```sh
+cd examples/stm32g0b1-nucleo
+cargo run --release --bin canopen
+```
+
+Bring up the USB adapter on the Linux side (same as for the H573I-DK above),
+then run the same `canopen-demo` tests against `can0`.
 
 
 ## eds File
