@@ -16,3 +16,4 @@ doc/html/
 
 #rust port
 /rust/target/
+/examples/stm32g0b1-nucleo/target/
