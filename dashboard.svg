@@ -7,7 +7,7 @@
      role="img"
      aria-labelledby="title description">
   <title id="title">Industrial plant overview dashboard</title>
-  <desc id="description">A vector recreation of a three-system Stöbich monitoring dashboard with status, alerts, date, QR code, and company logo.</desc>
+  <desc id="description">A vector recreation of a three-system St&#246;bich monitoring dashboard with status, alerts, date, QR code, and company logo.</desc>
 
   <defs>
     <linearGradient id="badgeRed" x1="0" y1="0" x2="0" y2="1">
@@ -151,7 +151,7 @@
     <text x="266" y="191" font-size="26">FAA 2</text>
     <text x="439" y="191" font-size="26">FAA 3</text>
     <text x="93" y="406" font-size="16">Schleuse</text>
-    <text x="266" y="406" font-size="16">Palettenförderer</text>
+    <text x="266" y="406" font-size="16">Palettenf&#246;rderer</text>
     <text x="439" y="406" font-size="16">Heber XY</text>
   </g>
 
@@ -193,7 +193,7 @@
   <use xlink:href="#notification" href="#notification" x="769" y="165"/>
   <use xlink:href="#notification" href="#notification" x="769" y="202"/>
 
-  <!-- QR code, transcribed as a 25 × 25 vector module grid -->
+  <!-- QR code, transcribed as a 25 x 25 vector module grid -->
   <path fill="#000"
         transform="translate(626 317) scale(3.2)"
         shape-rendering="crispEdges"
@@ -205,5 +205,5 @@
         font-family="Arial, Helvetica, sans-serif"
         font-size="35"
         font-weight="900"
-        letter-spacing="-.8">STÖBICH<tspan dx="2" dy="-14" font-size="10" letter-spacing="0">®</tspan></text>
+        letter-spacing="-.8">ST&#214;BICH<tspan dx="2" dy="-14" font-size="10" letter-spacing="0">&#174;</tspan></text>
 </svg>
