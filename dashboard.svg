@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="815"
+     height="492"
+     viewBox="0 0 815 492"
+     role="img"
+     aria-labelledby="title description">
+  <title id="title">Industrial plant overview dashboard</title>
+  <desc id="description">A vector recreation of a three-system Stöbich monitoring dashboard with status, alerts, date, QR code, and company logo.</desc>
+
+  <defs>
+    <linearGradient id="badgeRed" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ef1a1a"/>
+      <stop offset="1" stop-color="#c90000"/>
+    </linearGradient>
+    <linearGradient id="machineRed" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a90008"/>
+      <stop offset=".22" stop-color="#ef1c27"/>
+      <stop offset=".68" stop-color="#c9000b"/>
+      <stop offset="1" stop-color="#8e0006"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4f4f4"/>
+      <stop offset=".3" stop-color="#aaa"/>
+      <stop offset=".55" stop-color="#fafafa"/>
+      <stop offset="1" stop-color="#747474"/>
+    </linearGradient>
+    <linearGradient id="darkSteel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3d3d3d"/>
+      <stop offset=".5" stop-color="#a8a8a8"/>
+      <stop offset="1" stop-color="#353535"/>
+    </linearGradient>
+    <filter id="panelShadow" x="-3%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="1" dy="2" stdDeviation="4" flood-color="#000" flood-opacity=".4"/>
+    </filter>
+    <filter id="badgeShadow" x="-70%" y="-70%" width="240%" height="240%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#555" flood-opacity=".45"/>
+    </filter>
+    <filter id="machineShadow" x="-15%" y="-15%" width="140%" height="145%">
+      <feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-color="#777" flood-opacity=".28"/>
+    </filter>
+
+    <g id="gear" fill="#fff">
+      <rect x="14" y="0" width="4" height="8" rx="1"/>
+      <rect x="14" y="24" width="4" height="8" rx="1"/>
+      <rect x="0" y="14" width="8" height="4" rx="1"/>
+      <rect x="24" y="14" width="8" height="4" rx="1"/>
+      <rect x="14" y="0" width="4" height="8" rx="1" transform="rotate(45 16 16)"/>
+      <rect x="14" y="24" width="4" height="8" rx="1" transform="rotate(45 16 16)"/>
+      <rect x="0" y="14" width="8" height="4" rx="1" transform="rotate(45 16 16)"/>
+      <rect x="24" y="14" width="8" height="4" rx="1" transform="rotate(45 16 16)"/>
+      <circle cx="16" cy="16" r="11"/>
+      <circle cx="16" cy="16" r="4.5" fill="#969695"/>
+    </g>
+
+    <g id="mailIcon">
+      <rect x="0" y="0" width="31" height="24" rx="3" fill="currentColor"/>
+      <path d="M2.5 3.3 15.5 13 28.5 3.3" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <g id="alertIcon">
+      <path d="M16 0 32 29H0Z" fill="currentColor"/>
+      <rect x="14.5" y="8" width="3" height="11" rx="1.5" fill="#fff"/>
+      <circle cx="16" cy="23.5" r="1.8" fill="#fff"/>
+    </g>
+
+    <g id="notification">
+      <circle cx="8" cy="8" r="8" fill="url(#badgeRed)" filter="url(#badgeShadow)"/>
+      <text x="8" y="11.4" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" text-anchor="middle">1</text>
+    </g>
+
+    <g id="machine" filter="url(#machineShadow)">
+      <!-- floor shadow and platform -->
+      <ellipse cx="67" cy="124" rx="50" ry="8" fill="#cfcfcf" opacity=".55"/>
+      <path d="M10 112 84 104 122 116 48 128Z" fill="#e6e6e6"/>
+      <path d="M27 108 92 102 116 110 49 118Z" fill="url(#steel)" stroke="#a5a5a5" stroke-width=".5"/>
+      <path d="M48 117 116 109 116 115 48 126Z" fill="#646464"/>
+      <path d="M48 117 116 109 116 112 48 121Z" fill="#ececec"/>
+      <path d="M29 109 50 116 50 124 29 117Z" fill="#777"/>
+      <path d="M34 105 98 100 101 105 39 111Z" fill="#4f5557"/>
+      <path d="M39 107 95 102 95 105 40 111Z" fill="#d9d9d9"/>
+
+      <!-- red uprights -->
+      <path d="M37 39H42V113L37 116Z" fill="url(#machineRed)"/>
+      <path d="M40 39H43V113H40Z" fill="#f33"/>
+      <path d="M82 36H88V113L82 112Z" fill="url(#machineRed)"/>
+      <path d="M82 36H85V112H82Z" fill="#fc3440"/>
+      <path d="M35 110 45 109 45 116 35 118Z" fill="#6e0004"/>
+      <path d="M79 108 91 110 90 116 79 114Z" fill="#720005"/>
+
+      <!-- moving red gate -->
+      <path d="M40 57 84 55V94L40 98Z" fill="url(#machineRed)"/>
+      <path d="M43 59 79 58V63L43 65Z" fill="#f22b34" opacity=".9"/>
+      <path d="M40 93 84 90V95L40 99Z" fill="#920007"/>
+      <path d="M42 65H46V91H42Z" fill="#ed2630" opacity=".8"/>
+      <path d="M77 59H82V91H77Z" fill="#b00008"/>
+      <rect x="57" y="57" width="12" height="12" rx="1" fill="#870006"/>
+      <rect x="59" y="58" width="8" height="8" fill="#3d3d3d"/>
+      <path d="M60 59h2v6h-2zm4 0h2v6h-2z" fill="#bababa"/>
+      <circle cx="72.5" cy="63" r="1.4" fill="#ffbd00"/>
+
+      <!-- top drive assembly -->
+      <path d="M47 29 53 29 53 54 49 56Z" fill="#b30008"/>
+      <path d="M71 28 77 28 80 55 74 56Z" fill="#9c0007"/>
+      <path d="M49 31 77 29 78 37 50 40Z" fill="url(#machineRed)"/>
+      <circle cx="54" cy="34" r="7" fill="#b80009"/>
+      <circle cx="54" cy="34" r="4.8" fill="#ed2631"/>
+      <circle cx="54" cy="34" r="2" fill="#777"/>
+      <path d="M56 27 72 25 76 36 59 38Z" fill="url(#darkSteel)"/>
+      <path d="M61 26 68 25 69 37 62 38Z" fill="#bdbdbd"/>
+      <path d="M72 25 80 27 80 34 75 36Z" fill="#3f4243"/>
+      <ellipse cx="80" cy="30.5" rx="3.2" ry="4" fill="#242424"/>
+      <path d="M44 31 49 29 50 39 44 39Z" fill="#4a4a4a"/>
+      <circle cx="45" cy="35" r="3.3" fill="#303030"/>
+      <path d="M53 40 56 40 56 55 53 56Zm17-2h3l3 17h-3Z" fill="#bbb"/>
+
+      <!-- fine highlights -->
+      <path d="M38 44H40V105H38ZM83 41H85V102H83Z" fill="#ff555d" opacity=".75"/>
+      <path d="M47 97 47 110M76 95 76 108" stroke="#4f4f4f" stroke-width="2"/>
+    </g>
+  </defs>
+
+  <!-- dashboard shell -->
+  <rect x="6" y="4" width="800" height="480" fill="#fff" stroke="#303030" stroke-width="1" filter="url(#panelShadow)"/>
+
+  <!-- regions -->
+  <path d="M7 5H525V144H7Z" fill="#e8e8e8"/>
+  <path d="M526 5H665V283H526Z" fill="#969695"/>
+  <path d="M526 284H805V483H526Z" fill="#e8e8e8"/>
+
+  <!-- dividers -->
+  <g fill="none" stroke="#a5a5a5" stroke-width="1">
+    <path d="M6 144H526"/>
+    <path d="M179.5 144V484"/>
+    <path d="M352.5 144V484"/>
+    <path d="M525.5 4V484"/>
+    <path d="M665.5 4V284"/>
+    <path d="M526 283.5H806"/>
+  </g>
+
+  <!-- customer header -->
+  <g fill="#949494" font-family="Arial, Helvetica, sans-serif" font-weight="400">
+    <text x="36" y="58" font-size="32">Kundenname</text>
+    <text x="36" y="107" font-size="32">Anlagenname</text>
+  </g>
+
+  <!-- system cards -->
+  <g fill="#909090" font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+    <text x="93" y="191" font-size="26">FAA 1</text>
+    <text x="266" y="191" font-size="26">FAA 2</text>
+    <text x="439" y="191" font-size="26">FAA 3</text>
+    <text x="93" y="406" font-size="16">Schleuse</text>
+    <text x="266" y="406" font-size="16">Palettenförderer</text>
+    <text x="439" y="406" font-size="16">Heber XY</text>
+  </g>
+
+  <use xlink:href="#machine" href="#machine" x="31" y="220" width="127" height="145"/>
+  <use xlink:href="#machine" href="#machine" x="204" y="220" width="127" height="145"/>
+  <use xlink:href="#machine" href="#machine" x="377" y="220" width="127" height="145"/>
+
+  <!-- individual system notifications -->
+  <g color="#929292">
+    <use xlink:href="#mailIcon" href="#mailIcon" x="77" y="432"/>
+    <use xlink:href="#alertIcon" href="#alertIcon" x="424" y="432" width="29" height="26"/>
+  </g>
+  <use xlink:href="#notification" href="#notification" x="114" y="425"/>
+  <use xlink:href="#notification" href="#notification" x="448" y="425"/>
+
+  <!-- center status rail -->
+  <use xlink:href="#gear" href="#gear" x="580" y="58" width="33" height="33"/>
+  <g fill="none" stroke="#fff" stroke-width="3">
+    <circle cx="597.5" cy="181.5" r="14.7"/>
+    <path d="M597.5 171V182L605 187" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="15" text-anchor="middle">
+    <text x="596" y="233">27.10.2025</text>
+    <text x="596" y="255">10:05 Uhr</text>
+  </g>
+
+  <!-- aggregate status -->
+  <g fill="#8e8e8d" font-family="Arial, Helvetica, sans-serif" font-size="14">
+    <text x="692" y="110">Z-6.500-2612</text>
+    <text x="692" y="130">Z-6.510-2611</text>
+  </g>
+  <g color="#929292">
+    <use xlink:href="#mailIcon" href="#mailIcon" x="721" y="163"/>
+    <use xlink:href="#alertIcon" href="#alertIcon" x="720" y="198" width="34" height="30"/>
+  </g>
+  <g color="#df0010">
+    <use xlink:href="#alertIcon" href="#alertIcon" x="720" y="240" width="35" height="31"/>
+  </g>
+  <use xlink:href="#notification" href="#notification" x="769" y="165"/>
+  <use xlink:href="#notification" href="#notification" x="769" y="202"/>
+
+  <!-- QR code, transcribed as a 25 × 25 vector module grid -->
+  <path fill="#000"
+        transform="translate(626 317) scale(3.2)"
+        shape-rendering="crispEdges"
+        d="M0 0h7v1H0zM12 0h4v1H12zM18 0h7v1H18zM0 1h1v1H0zM6 1h1v1H6zM8 1h1v1H8zM10 1h1v1H10zM13 1h1v1H13zM15 1h1v1H15zM18 1h1v1H18zM24 1h1v1H24zM0 2h1v1H0zM2 2h3v1H2zM6 2h1v1H6zM9 2h2v1H9zM15 2h2v1H15zM18 2h1v1H18zM20 2h3v1H20zM24 2h1v1H24zM0 3h1v1H0zM2 3h3v1H2zM6 3h1v1H6zM9 3h2v1H9zM14 3h2v1H14zM18 3h1v1H18zM20 3h3v1H20zM24 3h1v1H24zM0 4h1v1H0zM2 4h3v1H2zM6 4h1v1H6zM8 4h5v1H8zM14 4h2v1H14zM18 4h1v1H18zM20 4h3v1H20zM24 4h1v1H24zM0 5h1v1H0zM6 5h1v1H6zM15 5h2v1H15zM18 5h1v1H18zM24 5h1v1H24zM0 6h7v1H0zM8 6h1v1H8zM10 6h1v1H10zM12 6h1v1H12zM14 6h1v1H14zM16 6h1v1H16zM18 6h7v1H18zM9 7h1v1H9zM11 7h1v1H11zM13 7h4v1H13zM0 8h1v1H0zM2 8h1v1H2zM4 8h1v1H4zM6 8h1v1H6zM12 8h2v1H12zM16 8h1v1H16zM20 8h1v1H20zM23 8h1v1H23zM0 9h1v1H0zM2 9h1v1H2zM5 9h1v1H5zM7 9h2v1H7zM16 9h1v1H16zM18 9h1v1H18zM24 9h1v1H24zM2 10h3v1H2zM6 10h1v1H6zM8 10h1v1H8zM14 10h1v1H14zM17 10h3v1H17zM22 10h3v1H22zM1 11h1v1H1zM4 11h1v1H4zM7 11h3v1H7zM13 11h1v1H13zM16 11h1v1H16zM18 11h1v1H18zM23 11h1v1H23zM0 12h1v1H0zM2 12h1v1H2zM4 12h1v1H4zM6 12h5v1H6zM13 12h7v1H13zM21 12h1v1H21zM23 12h2v1H23zM1 13h5v1H1zM11 13h1v1H11zM16 13h1v1H16zM18 13h1v1H18zM21 13h1v1H21zM24 13h1v1H24zM0 14h1v1H0zM6 14h5v1H6zM13 14h1v1H13zM16 14h4v1H16zM22 14h3v1H22zM1 15h4v1H1zM8 15h1v1H8zM11 15h1v1H11zM13 15h1v1H13zM15 15h2v1H15zM18 15h1v1H18zM20 15h1v1H20zM23 15h1v1H23zM0 16h1v1H0zM2 16h2v1H2zM5 16h5v1H5zM12 16h2v1H12zM16 16h6v1H16zM8 17h1v1H8zM10 17h4v1H10zM16 17h1v1H16zM20 17h2v1H20zM23 17h2v1H23zM0 18h7v1H0zM11 18h6v1H11zM18 18h1v1H18zM20 18h2v1H20zM23 18h2v1H23zM0 19h1v1H0zM6 19h1v1H6zM9 19h1v1H9zM12 19h3v1H12zM16 19h1v1H16zM20 19h2v1H20zM23 19h1v1H23zM0 20h1v1H0zM2 20h3v1H2zM6 20h1v1H6zM8 20h2v1H8zM11 20h3v1H11zM16 20h6v1H16zM0 21h1v1H0zM2 21h3v1H2zM6 21h1v1H6zM9 21h1v1H9zM11 21h1v1H11zM16 21h2v1H16zM19 21h4v1H19zM0 22h1v1H0zM2 22h3v1H2zM6 22h1v1H6zM8 22h1v1H8zM13 22h1v1H13zM16 22h1v1H16zM20 22h1v1H20zM24 22h1v1H24zM0 23h1v1H0zM6 23h1v1H6zM10 23h5v1H10zM16 23h1v1H16zM18 23h1v1H18zM20 23h2v1H20zM23 23h1v1H23zM0 24h7v1H0zM8 24h2v1H8zM11 24h3v1H11zM15 24h2v1H15zM19 24h1v1H19zM23 24h2v1H23z"/>
+
+  <!-- word mark -->
+  <text x="594" y="456"
+        fill="#d90812"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="35"
+        font-weight="900"
+        letter-spacing="-.8">STÖBICH<tspan dx="2" dy="-14" font-size="10" letter-spacing="0">®</tspan></text>
+</svg>
